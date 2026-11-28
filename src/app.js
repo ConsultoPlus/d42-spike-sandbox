@@ -1,5 +1,6 @@
 import { createServer } from "node:http";
 import { createStore } from "./notes.js";
+import { parseTagQuery } from "./tags.js";
 
 function send(res, status, value) {
   res.writeHead(status, { "content-type": "application/json" });
@@ -15,13 +16,13 @@ async function readJson(req) {
 export function createApp(store = createStore()) {
   return createServer(async (req, res) => {
     try {
-      const { pathname } = new URL(req.url, "http://localhost");
+      const { pathname, searchParams } = new URL(req.url, "http://localhost");
       if (req.method === "GET" && pathname === "/health") return send(res, 200, { ok: true });
-      if (req.method === "GET" && pathname === "/notes") return send(res, 200, store.list());
-      if (req.method === "POST" && pathname === "/notes") return send(res, 201, store.add(await readJson(req)));
+      if (req.method === "GET" && pathname === "/notes") return send(res, 200, await store.list({ tag: parseTagQuery(searchParams) }));
+      if (req.method === "POST" && pathname === "/notes") return send(res, 201, await store.add(await readJson(req)));
       const m = pathname.match(/^\/notes\/(\d+)$/);
       if (req.method === "GET" && m) {
-        const note = store.get(Number(m[1]));
+        const note = await store.get(Number(m[1]));
         return note ? send(res, 200, note) : send(res, 404, { error: "not found" });
       }
       send(res, 404, { error: "not found" });

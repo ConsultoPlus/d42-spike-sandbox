@@ -1,6 +1,8 @@
 import { test, after, before } from "node:test";
 import assert from "node:assert/strict";
 import { createApp } from "../src/app.js";
+import { createStore } from "../src/notes.js";
+import { notesSuite } from "../test-support/notes-suite.js";
 
 let server, base;
 before(async () => {
@@ -31,3 +33,5 @@ test("a note needs a title", async () => {
 test("unknown note is 404", async () => {
   assert.equal((await fetch(`${base}/notes/999`)).status, 404);
 });
+
+notesSuite("in-memory store", async () => createStore());
