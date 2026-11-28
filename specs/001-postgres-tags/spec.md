@@ -90,8 +90,17 @@ A client lists only the notes that carry a given tag.
 ### Breaking changes (constitution principle 5)
 
 - Every note response gains a `tags` field (always present, `[]` when empty).
-- `POST /notes` with a `tags` value that is not an array currently returns 201, because the field is ignored. It will return 400. This is a visible change of status code, approved by the owner.
-- `GET /notes?tag=` was ignored before and is now validated. The same holds for a repeated `tag`.
+`POST /notes` ignores everything but `title` and `body` today, so every request below returned 201 before. Each is a visible change of status code (201 to 400), approved by the owner:
+
+- `tags` with more than 5 entries (duplicates count) now returns 400.
+- A tag that is empty, longer than 20 characters, or has a character outside `A-Za-z0-9-` now returns 400.
+- An entry of `tags` that is not a string now returns 400.
+- `tags` that is not an array (including `null`) now returns 400.
+
+`GET /notes` ignores the query string today, so every request below returned 200 before:
+
+- `?tag=` with an empty or invalid value now returns 400.
+- A repeated `tag` (`?tag=a&tag=b`) now returns 400.
 
 ### Key Entities
 
