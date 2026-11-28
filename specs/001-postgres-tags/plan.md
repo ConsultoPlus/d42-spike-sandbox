@@ -31,7 +31,7 @@ Add tags to notes and an optional PostgreSQL store, chosen at start by `DATABASE
 Quoting `.specify/memory/constitution.md`:
 
 - *Small and dependency-light* - one dependency, `pg`, justified above. Pass.
-- *Tested* - each task carries its tests; PostgreSQL tests use a real database, so CI needs a PostgreSQL service (task T008). Pass.
+- *Tested* - each task carries its tests; PostgreSQL tests use a real database, so CI needs a PostgreSQL service (task T001). Pass.
 - *One change per PR* - tasks are sized one PR each. Pass.
 - *Specs first* - spec has no open clarifications. Pass.
 - *The API is a contract* - breaking changes are listed in the spec: `tags` on every note, 400 for non-array `tags`, validated `?tag`. Pass.
