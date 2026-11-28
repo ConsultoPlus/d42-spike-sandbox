@@ -17,3 +17,7 @@ npm start       # http://localhost:3000
 | GET | `/notes` | all notes |
 | POST | `/notes` | add `{ "title": "…", "body": "…" }`; 400 when the title is missing |
 | GET | `/notes/:id` | one note, or 404 |
+
+**Storage:** notes are kept in memory by default. Set `DATABASE_URL` (for example `postgres://user:pass@host:5432/db`)
+to keep them in PostgreSQL instead; the table is created on start. If the database is unreachable the server exits
+with an error and does not fall back to memory.
