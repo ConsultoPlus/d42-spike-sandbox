@@ -10,7 +10,8 @@
 - [x] Edge cases are identified
 - [x] Scope is bounded (edit/delete, users/auth out)
 - [x] Dependencies and assumptions identified
-- [x] Breaking changes called out (constitution principle 5)
+- [x] Breaking changes called out (constitution principle 5), each status change listed
+- [x] Duplicate tags: kept as sent, order preserved, counted per entry. Recorded as an assumption following the owner's "count every entry" decision, not an open question
 
 ## Notes
 

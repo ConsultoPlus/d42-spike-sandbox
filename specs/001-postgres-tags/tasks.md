@@ -22,7 +22,7 @@
 
 **Independent test**: POST with valid and invalid `tags`; check status and returned note on both stores.
 
-- [ ] T005 [US2] Create `src/tags.js` `parseTags(value)` and `test/tags.test.js`. Rules verbatim: `undefined` gives `[]`; "at most 5 entries, duplicates counted and kept; order as sent"; tag `/^[A-Za-z0-9-]{1,20}$/`, case-sensitive; non-array (including `null`) or non-string entry throws a 400 error (`Object.assign(new Error(...), { status: 400 })`). Cases: 5 ok, 6 rejected, 6 duplicates rejected, 20 chars ok, 21 rejected, empty, `é`, `"a\n"`, `"a b"`, `"Work"` kept as is
+- [ ] T005 [US2] Create `src/tags.js` `parseTags(value)` and `test/tags.test.js`. Rules verbatim: `undefined` gives `[]`; "at most 5 entries, duplicates counted and kept; order as sent" (assumption following the owner's "count every entry" decision); tag `/^[A-Za-z0-9-]{1,20}$/`, case-sensitive; non-array (including `null`) or non-string entry throws a 400 error (`Object.assign(new Error(...), { status: 400 })`). Cases: 5 ok, 6 rejected, 6 duplicates rejected, 20 chars ok, 21 rejected, empty, `é`, `"a\n"`, `"a b"`, `"Work"` kept as is
 - [ ] T006 [US2] Use `parseTags` in `add` of `src/notes.js` and `src/postgres-store.js`; notes become `{ id, title, body, tags }` with `tags: []` when none; the PostgreSQL store writes and reads the `tags` column in order. Write the store-independent POST tests once as a suite over a store factory in `test/notes-suite.js`, run for the in-memory store (in `test/app.test.js`) and for PostgreSQL (skipped when `DATABASE_URL` is unset): spec User Story 2 scenarios 1-7, including the request's Example 2 (7 tags) expecting 400 and `tags: "x"` expecting 400
 
 ## Phase 5: User Story 3 - Find notes by tag (P3)

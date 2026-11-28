@@ -64,7 +64,7 @@ A client lists only the notes that carry a given tag.
 
 - Exactly 5 tags is accepted; 6 is rejected.
 - A tag of exactly 20 characters is accepted; 21 is rejected.
-- Duplicate tags in the 5 or fewer entries are valid input. They are stored as sent (see Assumptions).
+- Duplicate tags in the 5 or fewer entries are valid input. They are stored as sent, order preserved (see Assumptions: follows the owner's "count every entry" decision).
 - Non-ASCII letters (for example `é`) are rejected.
 - `tags: null` is not an array and is rejected with 400.
 
@@ -118,7 +118,7 @@ A client lists only the notes that carry a given tag.
 
 ## Assumptions
 
-- Duplicate tags within the 5 or fewer entries are stored as sent; the owner approved counting duplicates but did not ask for de-duplication.
+- Duplicates: the owner decided "count every entry" (6 entries is 400 even if all equal). Following from that decision, and not left open, an accepted `tags` array (5 or fewer entries) is stored as sent: duplicates are kept, order is preserved, and each entry counts towards the limit. No de-duplication or sorting is applied.
 - `tags` is returned in the order sent.
 - Out of scope: editing or deleting notes, users and authentication.
 - Existing ids stay increasing integers from 1 in both stores.
