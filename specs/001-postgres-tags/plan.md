@@ -24,7 +24,7 @@ Add tags to notes and an optional PostgreSQL store, chosen at start by `DATABASE
 
 **Constraints**: behaviour of the two stores identical (FR-013)
 
-**Scale/Scope**: five endpoints, a few hundred lines
+**Scale/Scope**: four routes (`GET /health`, `GET /notes`, `POST /notes`, `GET /notes/:id`), a few hundred lines
 
 ## Constitution Check
 
@@ -59,7 +59,7 @@ Re-checked after design: no change.
 
 ### Tests
 
-- Store-independent behaviour (FR-005 to FR-012) is written once as a function taking a store factory, and run for the in-memory store and for PostgreSQL. PostgreSQL tests are skipped with a visible message when `DATABASE_URL` is unset, and always run in CI. Each PostgreSQL test run starts from an empty `notes` table.
+- Store-independent behaviour (FR-005 to FR-012) is written once as a function taking a store factory, in `test-support/notes-suite.js`. It is not under `test/` and not named `*.test.js`, because `node --test` runs every `.js` file under a `test/` directory and every `*.test.js` file, and would execute the helper as a test (T006 checks with `node --test` that it is not listed), and run for the in-memory store and for PostgreSQL. PostgreSQL tests are skipped with a visible message when `DATABASE_URL` is unset. In CI they must run, never skip: `test/ci-env.test.js` fails when `CI=true` and `DATABASE_URL` is empty, so a missing service or variable fails the job instead of passing silently (task T001). PostgreSQL test files are serialised: `package.json` `test` becomes `node --test --test-concurrency=1` (task T003), because `node --test` runs files in parallel and they would share one `notes` table. Each PostgreSQL test starts with `TRUNCATE notes RESTART IDENTITY` (so ids start at 1 again). One approach only: serialise, not a schema per file.
 - Start-up: opening the store with an unreachable `DATABASE_URL` rejects; the schema is created on an empty database and is a no-op the second time; a note added through one store instance is read through a new one (restart).
 - The existing four tests keep passing; the "add and read" one gains `tags: []` where it compares the note (it compares with the POST response, so it needs no change).
 
@@ -93,9 +93,13 @@ src/
 ├── store.js          # new: choose by DATABASE_URL
 └── server.js         # async start, exit 1 on failure
 test/
-├── app.test.js       # existing
-├── tags.test.js      # new
-└── store.test.js     # new: shared suite on both stores
+├── app.test.js            # existing; runs the shared suite on the in-memory store
+├── ci-env.test.js         # new: fails in CI when DATABASE_URL is missing
+├── tags.test.js           # new: parseTags, parseTagQuery
+├── store.test.js          # new: openStore selection and unreachable database
+└── postgres-store.test.js # new: PostgreSQL store, runs the shared suite
+test-support/
+└── notes-suite.js         # new: shared suite, a helper (not run as a test)
 ```
 
 **Structure Decision**: single project, flat `src/` as today.

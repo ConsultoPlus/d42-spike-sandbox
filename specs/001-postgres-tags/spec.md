@@ -11,7 +11,7 @@
 
 An operator sets `DATABASE_URL` and starts the API. Notes are kept in PostgreSQL and are still there after a restart. Without `DATABASE_URL` the API behaves as today, with the in-memory store.
 
-**Why this priority**: Durable storage is the main reason for the change, and tags depend on it being in place for both stores.
+**Why this priority**: Durable storage is the main reason for the change.
 
 **Independent Test**: Start with `DATABASE_URL` pointing at an empty database, POST a note, restart, GET it. Start without `DATABASE_URL` and run the existing tests unchanged.
 
@@ -28,7 +28,7 @@ An operator sets `DATABASE_URL` and starts the API. Notes are kept in PostgreSQL
 
 A client adds a note with an optional `tags` array to organise it.
 
-**Why this priority**: It adds the new data. Filtering (story 3) needs it.
+**Why this priority**: It adds the new data. Filtering (story 3) needs it. Tags work the same on both stores and do not depend on PostgreSQL.
 
 **Independent Test**: POST notes with valid and invalid `tags`, check status codes and the returned note.
 

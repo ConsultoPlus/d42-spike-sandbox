@@ -5,7 +5,7 @@
 
 ## Phase 1: Setup
 
-- [ ] T001 Add a `postgres` service container and `DATABASE_URL` env to the `ci` job in `.github/workflows/ci.yml`; `npm test` still runs unchanged (plan: Changes 8)
+- [ ] T001 Add a `postgres` service container and `DATABASE_URL` env to the `ci` job in `.github/workflows/ci.yml`; `npm test` still runs unchanged (plan: Changes 8). Add `test/ci-env.test.js`: when `process.env.CI === "true"`, assert `DATABASE_URL` is non-empty (otherwise the PostgreSQL tests would skip and CI would pass without them); outside CI it is skipped
 
 ## Phase 2: Foundational
 
@@ -15,7 +15,7 @@
 
 **Independent test**: with `DATABASE_URL` set, add a note, open a new store on the same database, read it back; without it, existing tests pass.
 
-- [ ] T003 [US1] Add the `pg` dependency to `package.json` (with lockfile) and create `src/postgres-store.js`: `createPostgresStore(url)` runs `CREATE TABLE IF NOT EXISTS notes (id serial PRIMARY KEY, title text NOT NULL, body text NOT NULL DEFAULT '', tags text[] NOT NULL DEFAULT '{}')`, sets a `connectionTimeoutMillis`, exposes `list/get/add/close`, returns null from `get` for ids above 2147483647, and reuses the existing title check (extract it so both stores share it). Add `test/postgres-store.test.js` (skipped with a message when `DATABASE_URL` is unset): schema created on an empty database, second start leaves data, note added via one store instance is read by a new one, ids increase from 1 on an empty table
+- [ ] T003 [US1] Add the `pg` dependency to `package.json` (with lockfile) and create `src/postgres-store.js`: `createPostgresStore(url)` runs `CREATE TABLE IF NOT EXISTS notes (id serial PRIMARY KEY, title text NOT NULL, body text NOT NULL DEFAULT '', tags text[] NOT NULL DEFAULT '{}')`, sets a `connectionTimeoutMillis`, exposes `list/get/add/close`, returns null from `get` for ids above 2147483647, and reuses the existing title check (extract it so both stores share it). Change the `test` script in `package.json` to `node --test --test-concurrency=1`, so PostgreSQL test files do not run in parallel against one table. Add `test/postgres-store.test.js` (skipped with a message when `DATABASE_URL` is unset; `beforeEach` runs `TRUNCATE notes RESTART IDENTITY`): schema created on an empty database, second start leaves data, note added via one store instance is read by a new one, ids increase from 1 on an empty table
 - [ ] T004 [US1] Create `src/store.js` `openStore(env)` (`DATABASE_URL` set gives the PostgreSQL store, otherwise `createStore()`; connection errors propagate, no fallback) and change `src/server.js` to `await openStore(process.env)`, pass it to `createApp`, and on error print it and `process.exit(1)`. Tests in `test/store.test.js`: no `DATABASE_URL` gives the in-memory store; an unreachable `DATABASE_URL` makes `openStore` reject. Update README with `DATABASE_URL`
 
 ## Phase 4: User Story 2 - Tag a note (P2)
@@ -23,13 +23,13 @@
 **Independent test**: POST with valid and invalid `tags`; check status and returned note on both stores.
 
 - [ ] T005 [US2] Create `src/tags.js` `parseTags(value)` and `test/tags.test.js`. Rules verbatim: `undefined` gives `[]`; "at most 5 entries, duplicates counted and kept; order as sent" (assumption following the owner's "count every entry" decision); tag `/^[A-Za-z0-9-]{1,20}$/`, case-sensitive; non-array (including `null`) or non-string entry throws a 400 error (`Object.assign(new Error(...), { status: 400 })`). Cases: 5 ok, 6 rejected, 6 duplicates rejected, 20 chars ok, 21 rejected, empty, `é`, `"a\n"`, `"a b"`, `"Work"` kept as is
-- [ ] T006 [US2] Use `parseTags` in `add` of `src/notes.js` and `src/postgres-store.js`; notes become `{ id, title, body, tags }` with `tags: []` when none; the PostgreSQL store writes and reads the `tags` column in order. Write the store-independent POST tests once as a suite over a store factory in `test/notes-suite.js`, run for the in-memory store (in `test/app.test.js`) and for PostgreSQL (skipped when `DATABASE_URL` is unset): spec User Story 2 scenarios 1-7, including the request's Example 2 (7 tags) expecting 400 and `tags: "x"` expecting 400
+- [ ] T006 [US2] Use `parseTags` in `add` of `src/notes.js` and `src/postgres-store.js`; notes become `{ id, title, body, tags }` with `tags: []` when none; the PostgreSQL store writes and reads the `tags` column in order. Write the store-independent POST tests once as a suite over a store factory in `test-support/notes-suite.js` (outside `test/` and not `*.test.js`, so `node --test` does not run it as a test), run for the in-memory store (in `test/app.test.js`) and for PostgreSQL (in `test/postgres-store.test.js`, skipped when `DATABASE_URL` is unset, with the `TRUNCATE ... RESTART IDENTITY` reset): spec User Story 2 scenarios 1-7, including the request's Example 2 (7 tags) expecting 400 and `tags: "x"` expecting 400
 
 ## Phase 5: User Story 3 - Find notes by tag (P3)
 
 **Independent test**: add notes with different tags, `GET /notes?tag=…` on both stores.
 
-- [ ] T007 [US3] Add `parseTagQuery(searchParams)` to `src/tags.js` (`undefined` when absent; 400 when `getAll("tag").length > 1`, or the value is empty or not a valid tag), make `list({ tag })` filter by exact equality in `src/notes.js` and `WHERE $1 = ANY(tags)` ordered by `id` in `src/postgres-store.js`, and pass the parsed value from `GET /notes` in `src/app.js`. Add spec User Story 3 scenarios 1-5 to the shared suite in `test/notes-suite.js` (both stores), plus a case-sensitivity check (`work` does not match `Work`)
+- [ ] T007 [US3] Add `parseTagQuery(searchParams)` to `src/tags.js` (`undefined` when absent; 400 when `getAll("tag").length > 1`, or the value is empty or not a valid tag), make `list({ tag })` filter by exact equality in `src/notes.js` and `WHERE $1 = ANY(tags)` ordered by `id` in `src/postgres-store.js`, and pass the parsed value from `GET /notes` in `src/app.js`. Add spec User Story 3 scenarios 1-5 to the shared suite in `test-support/notes-suite.js` (both stores), plus a case-sensitivity check (`work` does not match `Work`)
 
 ## Phase 6: Polish
 
