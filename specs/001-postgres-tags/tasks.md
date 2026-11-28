@@ -16,7 +16,7 @@
 **Independent test**: with `DATABASE_URL` set, add a note, open a new store on the same database, read it back; without it, existing tests pass.
 
 - [ ] T003 [US1] Add the `pg` dependency to `package.json` (with lockfile) and create `src/postgres-store.js`: `createPostgresStore(url)` runs `CREATE TABLE IF NOT EXISTS notes (id serial PRIMARY KEY, title text NOT NULL, body text NOT NULL DEFAULT '', tags text[] NOT NULL DEFAULT '{}')`, sets a `connectionTimeoutMillis`, exposes `list/get/add/close`, returns null from `get` for ids above 2147483647, and reuses the existing title check (extract it so both stores share it). Change the `test` script in `package.json` to `node --test --test-concurrency=1`, so PostgreSQL test files do not run in parallel against one table. Add `test/postgres-store.test.js` (skipped with a message when `DATABASE_URL` is unset; `beforeEach` runs `TRUNCATE notes RESTART IDENTITY`): schema created on an empty database, second start leaves data, note added via one store instance is read by a new one, ids increase from 1 on an empty table
-- [ ] T004 [US1] Create `src/store.js` `openStore(env)` (`DATABASE_URL` set gives the PostgreSQL store, otherwise `createStore()`; connection errors propagate, no fallback) and change `src/server.js` to `await openStore(process.env)`, pass it to `createApp`, and on error print it and `process.exit(1)`. Tests in `test/store.test.js`: no `DATABASE_URL` gives the in-memory store; an unreachable `DATABASE_URL` makes `openStore` reject. Update README with `DATABASE_URL`
+- [ ] T004 [US1] Create `src/store.js` `openStore(env)` (`DATABASE_URL` set gives the PostgreSQL store, otherwise `createStore()`; connection errors propagate, no fallback) and change `src/server.js` to `await openStore(process.env)`, pass it to `createApp`, and on error print it and `process.exit(1)`. Tests in `test/store.test.js`: no `DATABASE_URL` gives the in-memory store; an unreachable `DATABASE_URL` makes `openStore` reject. Update `README.md` with `DATABASE_URL` only (nothing about tags yet; that is T008)
 
 ## Phase 4: User Story 2 - Tag a note (P2)
 
@@ -33,7 +33,7 @@
 
 ## Phase 6: Polish
 
-- [ ] T008 Update `README.md`: `tags` on `POST /notes`, `?tag=` on `GET /notes`, `tags` in note shape, and the breaking changes listed in the spec (non-array `tags` now 400)
+- [ ] T008 Update `README.md`: only `tags` on `POST /notes`, `?tag=` on `GET /notes`, `tags` in the note shape, and the breaking changes listed in the spec (every status change in the spec's "Breaking changes" section). Also fix the line "a notes HTTP API on Node 24 with no dependencies", which is false once `pg` is added (T003): say it has one dependency, `pg`, used only when `DATABASE_URL` is set. Do not repeat `DATABASE_URL` docs from T004
 
 ## Dependencies
 

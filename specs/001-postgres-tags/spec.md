@@ -113,13 +113,14 @@ A client lists only the notes that carry a given tag.
 
 - **SC-001**: After a restart with `DATABASE_URL` set, 100% of previously added notes, with their tags, are still returned.
 - **SC-002**: Without `DATABASE_URL`, every pre-existing test passes unchanged, apart from assertions on the new `tags` field.
-- **SC-003**: Every rule in FR-006 to FR-012 has a test that passes against both stores.
+- **SC-003**: Every rule in FR-005 to FR-012 has a test that passes against both stores.
 - **SC-004**: The API refuses to start when the configured database is unreachable, in every attempt.
 
 ## Assumptions
 
 - Duplicates: the owner decided "count every entry" (6 entries is 400 even if all equal). Following from that decision, and not left open, an accepted `tags` array (5 or fewer entries) is stored as sent: duplicates are kept, order is preserved, and each entry counts towards the limit. No de-duplication or sorting is applied.
 - `tags` is returned in the order sent.
+- Known limitation, not changed here: PostgreSQL rejects the NUL character (`\u0000`) in `text` values, so a `title` or `body` containing it fails on the PostgreSQL store (a 500 today) while the in-memory store accepts it. Rejecting it with 400 would be a new status change to existing title/body behaviour, which FR-014 says must not change, so it is left out of this change. Tags cannot contain NUL (FR-007), so FR-013 is not affected. Rejecting NUL in title/body for both stores can be a separate change request.
 - Out of scope: editing or deleting notes, users and authentication.
 - Existing ids stay increasing integers from 1 in both stores.
 - The request's Example 2 (7 tags, 201) contradicts the 5-tag limit. The owner ruled that the limit is right, so Example 2 expects 400.
